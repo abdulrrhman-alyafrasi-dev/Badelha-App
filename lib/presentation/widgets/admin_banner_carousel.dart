@@ -13,7 +13,7 @@ class AdminBannerCarousel extends StatefulWidget {
 }
 
 class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
-  late PageController _pageController;
+  late final PageController _pageController;
   int _currentPage = 0;
   Timer? _timer;
 
@@ -21,9 +21,18 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _startAutoPlay();
+  }
 
+  void _startAutoPlay() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      final banners = Provider.of<BannerProvider>(context, listen: false).banners;
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final banners = context.read<BannerProvider>().banners;
       if (banners.isNotEmpty && _pageController.hasClients) {
         final nextPage = (_currentPage + 1) % banners.length;
         _pageController.animateToPage(
@@ -42,9 +51,22 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
     super.dispose();
   }
 
+  Color _parseBadgeColor(String rawColor) {
+    if (rawColor.isEmpty) return const Color(0xFFFFCC00);
+    try {
+      String hex = rawColor.replaceAll('#', '').trim();
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (_) {
+      return const Color(0xFFFFCC00);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bannerProv = Provider.of<BannerProvider>(context);
+    final bannerProv = context.watch<BannerProvider>();
     final banners = bannerProv.banners;
 
     if (bannerProv.isLoading || banners.isEmpty) {
@@ -58,7 +80,9 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
-              setState(() => _currentPage = index);
+              if (mounted) {
+                setState(() => _currentPage = index);
+              }
             },
             itemCount: banners.length,
             itemBuilder: (context, index) {
@@ -92,10 +116,7 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
   }
 
   Widget _buildBannerCard(BuildContext context, AdminBannerModel banner) {
-    Color badgeColor = const Color(0xFFFFCC00);
-    try {
-      badgeColor = Color(int.parse(banner.badgeColor));
-    } catch (_) {}
+    final badgeColor = _parseBadgeColor(banner.badgeColor);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -123,7 +144,9 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            final targetUrl = banner.actionUrl.isNotEmpty ? banner.actionUrl : (banner.id == 'banner_dev_channel' ? 'https://t.me/Al_YafarsiDev77' : '');
+            final targetUrl = banner.actionUrl.isNotEmpty
+                ? banner.actionUrl
+                : (banner.id == 'banner_dev_channel' ? 'https://t.me/Al_YafarsiDev77' : '');
             if (targetUrl.isNotEmpty) {
               IntentsHelper.openUrl(targetUrl, context);
             } else {
@@ -236,7 +259,11 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
   }
 
   void _showBannerDetails(BuildContext context, AdminBannerModel banner) {
-    final targetUrl = banner.actionUrl.isNotEmpty ? banner.actionUrl : (banner.id == 'banner_dev_channel' ? 'https://t.me/Al_YafarsiDev77' : '');
+    final targetUrl = banner.actionUrl.isNotEmpty
+        ? banner.actionUrl
+        : (banner.id == 'banner_dev_channel' ? 'https://t.me/Al_YafarsiDev77' : '');
+
+    final isTelegram = targetUrl.contains('t.me');
 
     showModalBottomSheet(
       context: context,
@@ -270,7 +297,11 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
               ),
               child: Text(
                 banner.tag,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber.shade900,
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -279,7 +310,7 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
               style: const TextStyle(fontSize: 13, height: 1.6, color: Colors.black87),
             ),
             const SizedBox(height: 20),
-            if (targetUrl != null && targetUrl.isNotEmpty) ...[
+            if (targetUrl.isNotEmpty) ...[
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -288,10 +319,20 @@ class _AdminBannerCarouselState extends State<AdminBannerCarousel> {
                     Navigator.pop(ctx);
                     IntentsHelper.openUrl(targetUrl, context);
                   },
-                  icon: const Icon(Icons.telegram, color: Colors.white, size: 22),
-                  label: const Text('الانتقال إلى القناة الرسمية بالتليجرام 🚀'),
+                  icon: Icon(
+                    isTelegram ? Icons.telegram : Icons.open_in_new,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  label: Text(
+                    isTelegram
+                        ? 'الانتقال إلى القناة الرسمية بالتليجرام 🚀'
+                        : 'فتح الرابط الخارجي',
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF229ED9),
+                    backgroundColor: isTelegram
+                        ? const Color(0xFF229ED9)
+                        : const Color(0xFF0F4845),
                     foregroundColor: Colors.white,
                   ),
                 ),
