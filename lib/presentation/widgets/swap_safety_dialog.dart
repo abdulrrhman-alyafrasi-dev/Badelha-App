@@ -15,8 +15,8 @@ class SwapSafetyDialog extends StatefulWidget {
     BuildContext context, {
     required String offerTitle,
     required VoidCallback onConfirmed,
-  }) {
-    return showDialog(
+  }) async {
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => SwapSafetyDialog(
@@ -69,7 +69,27 @@ class _SwapSafetyDialogState extends State<SwapSafetyDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Offer Title Badge / Highlight
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight.withAlpha(40),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'العرض: ${widget.offerTitle}',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 12),
 
               // Official Disclaimer Box
               Container(

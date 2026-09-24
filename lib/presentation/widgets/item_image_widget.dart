@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -40,53 +41,7 @@ class ItemImageWidget extends StatelessWidget {
       return _buildPresetIcon('');
     }
 
-    // 0. Base64 Image Data (data:image/jpeg;base64,... or raw base64)
-    if (rawPath.startsWith('data:image/') || (rawPath.length > 200 && !rawPath.contains('/') && !rawPath.contains('\\'))) {
-      try {
-        String base64Content = rawPath;
-        if (base64Content.contains(',')) {
-          base64Content = base64Content.split(',').last;
-        }
-        final bytes = base64Decode(base64Content.trim());
-        return Image.memory(
-          bytes,
-          width: width.isFinite ? width : null,
-          height: height.isFinite ? height : null,
-          fit: fit,
-          errorBuilder: (context, error, stackTrace) => _buildPresetIcon(rawPath),
-        );
-      } catch (e) {
-        debugPrint('Base64 image decode fallback: $e');
-      }
-    }
-
-    // 1. Clean file URI if present (e.g. file:///path -> /path)
-    String cleanPath = rawPath;
-    if (cleanPath.startsWith('file://')) {
-      cleanPath = cleanPath.replaceFirst('file://', '');
-      // On Windows, file:///C:/... might become /C:/..., strip leading slash before drive letter
-      if (cleanPath.startsWith('/') && cleanPath.length > 2 && cleanPath[2] == ':') {
-        cleanPath = cleanPath.substring(1);
-      }
-    }
-
-    // 2. Check if it's a valid local file on device storage
-    try {
-      final file = File(cleanPath);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          width: width.isFinite ? width : null,
-          height: height.isFinite ? height : null,
-          fit: fit,
-          errorBuilder: (context, error, stackTrace) => _buildPresetIcon(rawPath),
-        );
-      }
-    } catch (_) {
-      // Ignore file system errors safely
-    }
-
-    // 3. Web URL
+    // 1. رابط إنترنت شبكي (HTTP / HTTPS)
     if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
       return Image.network(
         rawPath,
@@ -116,7 +71,7 @@ class ItemImageWidget extends StatelessWidget {
       );
     }
 
-    // 4. Asset Image
+    // 2. صور مدمجة داخل التطبيق (Assets)
     if (rawPath.startsWith('assets/')) {
       return Image.asset(
         rawPath,
@@ -127,7 +82,54 @@ class ItemImageWidget extends StatelessWidget {
       );
     }
 
-    // 5. Preset badge / tag icon (phone, laptop, gaming, watch, car, home)
+    // 3. صور مشفرة بصيغة Base64
+    if (rawPath.startsWith('data:image/') ||
+        (rawPath.length > 200 && !rawPath.contains('/') && !rawPath.contains('\\'))) {
+      try {
+        String base64Content = rawPath;
+        if (base64Content.contains(',')) {
+          base64Content = base64Content.split(',').last;
+        }
+        final bytes = base64Decode(base64Content.trim());
+        return Image.memory(
+          bytes,
+          width: width.isFinite ? width : null,
+          height: height.isFinite ? height : null,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => _buildPresetIcon(rawPath),
+        );
+      } catch (e) {
+        debugPrint('Base64 image decode fallback: $e');
+      }
+    }
+
+    // 4. ملف محلي على القرص (فقط للأجهزة وليس للويب)
+    if (!kIsWeb) {
+      String cleanPath = rawPath;
+      if (cleanPath.startsWith('file://')) {
+        cleanPath = cleanPath.replaceFirst('file://', '');
+        if (cleanPath.startsWith('/') && cleanPath.length > 2 && cleanPath[2] == ':') {
+          cleanPath = cleanPath.substring(1);
+        }
+      }
+
+      try {
+        final file = File(cleanPath);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            width: width.isFinite ? width : null,
+            height: height.isFinite ? height : null,
+            fit: fit,
+            errorBuilder: (context, error, stackTrace) => _buildPresetIcon(rawPath),
+          );
+        }
+      } catch (_) {
+        // تجاهل أخطاء الوصول للقرص
+      }
+    }
+
+    // 5. الأيقونة الافتراضية المخصصة حسب الصنف
     return _buildPresetIcon(rawPath);
   }
 

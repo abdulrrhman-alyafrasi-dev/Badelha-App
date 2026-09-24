@@ -24,60 +24,69 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
-  late final PageController _pageController;
 
-  final List<Widget> _screens = [
-    const MarketplaceScreen(),
-    const SmartMatchesScreen(),
-    const SizedBox(), // Placeholder for Add Item
-    const ExploreScreen(),
-    const ProfileScreen(),
+  final List<Widget> _screens = const [
+    MarketplaceScreen(),
+    SmartMatchesScreen(),
+    SizedBox.shrink(), // Placeholder لن يتم الانتقال إليه في الـ Stack
+    ExploreScreen(),
+    ProfileScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: 0);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (!mounted) return;
+      final auth = context.read<AuthProvider>();
       await auth.init();
-      if (mounted) {
-        final userId = auth.currentUser?.id ?? '';
-        Provider.of<MarketplaceProvider>(context, listen: false).init(userId);
-        if (userId.isNotEmpty) {
-          Provider.of<NotificationProvider>(context, listen: false).loadNotifications(userId);
-        }
+
+      if (!mounted) return;
+      final userId = auth.currentUser?.id ?? '';
+      context.read<MarketplaceProvider>().init(userId);
+
+      if (userId.isNotEmpty) {
+        context.read<NotificationProvider>().loadNotifications(userId);
       }
     });
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void _onBottomNavTapped(int index) {
+    if (index == 2) {
+      // التحقق من صلاحية المستخدم قبل فتح صفحة الإضافة كشاشة كاملة
+      AuthGuard.verify(
+        context,
+        actionDescription: 'إضافة منتج للمقايضة',
+        onAllowed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const AddItemScreen()),
+          );
+        },
+      );
+      return;
+    }
+
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final notif = Provider.of<NotificationProvider>(context);
+    final auth = context.watch<AuthProvider>();
+    final notif = context.watch<NotificationProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(right: 12.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  gradient: AppColors.brandHeroGradient,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.sync_alt, color: Colors.white, size: 16),
-              ),
-            ],
+        leadingWidth: 54,
+        leading: Center(
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              gradient: AppColors.brandHeroGradient,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.sync_alt, color: Colors.white, size: 16),
           ),
         ),
         title: Row(
@@ -102,58 +111,78 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 ),
                 child: const Text(
                   'متصفح فقط',
-                  style: TextStyle(fontSize: 10, color: Colors.brown, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.brown,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
           ],
         ),
         actions: [
-          // Login prompt if Guest
           if (!auth.isLoggedIn)
             TextButton.icon(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (c) => const LoginScreen(returnAfterLogin: true)),
+                  MaterialPageRoute(
+                    builder: (c) => const LoginScreen(returnAfterLogin: true),
+                  ),
                 );
               },
               icon: const Icon(Icons.login, size: 16, color: AppColors.primary),
-              label: const Text('دخول', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              label: const Text(
+                'دخول',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             )
           else ...[
-            // Circular Swap Icon
             IconButton(
               icon: const Icon(Icons.all_inclusive, color: AppColors.secondary),
               tooltip: 'المقايضة الدائرية (3 أطراف)',
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const CircularSwapScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const CircularSwapScreen(),
+                  ),
                 );
               },
             ),
-            // Notifications Icon with badge
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 IconButton(
                   icon: const Icon(Icons.notifications_outlined),
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
                     );
                   },
                 ),
                 if (notif.unreadCount > 0)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 6,
+                    right: 6,
                     child: Container(
                       padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                       decoration: const BoxDecoration(
                         color: AppColors.error,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '${notif.unreadCount}',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -162,50 +191,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
           ],
         ],
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (index) {
-          if (index == 2) {
-            AuthGuard.verify(
-              context,
-              actionDescription: 'إضافة منتج للمقايضة',
-              onAllowed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const AddItemScreen()),
-                );
-              },
-            );
-            _pageController.jumpToPage(_currentIndex);
-          } else {
-            setState(() => _currentIndex = index);
-          }
-        },
+      body: IndexedStack(
+        index: _currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index == 2) {
-            // Guard Add Item against guest
-            AuthGuard.verify(
-              context,
-              actionDescription: 'إضافة منتج للمقايضة',
-              onAllowed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const AddItemScreen()),
-                );
-              },
-            );
-          } else {
-            setState(() => _currentIndex = index);
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
-        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: Colors.white,
+        showUnselectedLabels: true,
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        onTap: _onBottomNavTapped,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.storefront_outlined),
@@ -219,9 +218,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
           ),
           BottomNavigationBarItem(
             icon: CircleAvatar(
-              radius: 18,
+              radius: 17,
               backgroundColor: AppColors.primary,
-              child: Icon(Icons.add, color: Colors.white, size: 22),
+              child: Icon(Icons.add, color: Colors.white, size: 20),
             ),
             label: AppStrings.navAddItem,
           ),

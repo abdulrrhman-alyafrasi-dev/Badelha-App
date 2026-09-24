@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/marketplace_provider.dart';
 import '../../widgets/item_image_widget.dart';
 import '../item_details/item_details_screen.dart';
+import '../search/search_filter_screen.dart';
 import '../store/store_profile_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
@@ -14,8 +15,8 @@ class ExploreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final market = Provider.of<MarketplaceProvider>(context);
-    final auth = Provider.of<AuthProvider>(context);
+    final market = context.watch<MarketplaceProvider>();
+    final auth = context.watch<AuthProvider>();
     final userCity = auth.currentUser?.city ?? 'صنعاء';
 
     final nearbyItems = market.items.where((i) => i.city == userCity).toList();
@@ -26,6 +27,7 @@ class ExploreScreen extends StatelessWidget {
         title: const Text(AppStrings.navExplore),
       ),
       body: ListView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
           // 1. Featured Deals (منتجات مميزة)
@@ -33,10 +35,11 @@ class ExploreScreen extends StatelessWidget {
             _buildSectionHeader('💎 منتجات وصفقات مميزة', 'عروض حصرية موثوقة'),
             const SizedBox(height: 10),
             SizedBox(
-              height: 170,
+              height: 195,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 itemCount: featuredItems.length,
                 separatorBuilder: (ctx, i) => const SizedBox(width: 10),
                 itemBuilder: (ctx, i) => _buildFeaturedCard(context, featuredItems[i]),
@@ -51,73 +54,104 @@ class ExploreScreen extends StatelessWidget {
           if (nearbyItems.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('لا توجد عروض في $userCity حالياً، تصفح بقية المدن أدناه.', style: const TextStyle(color: AppColors.textMuted)),
+              child: Text(
+                'لا توجد عروض في $userCity حالياً، تصفح بقية المدن أدناه.',
+                style: const TextStyle(color: AppColors.textMuted),
+              ),
             )
           else
-            SizedBox(
-              height: 155,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: nearbyItems.length,
-                separatorBuilder: (ctx, i) => const SizedBox(width: 10),
-                itemBuilder: (ctx, i) => _buildMiniProductCard(context, nearbyItems[i]),
+            SliverFillRemainingWrapper(
+              child: SizedBox(
+                height: 168,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: nearbyItems.length,
+                  separatorBuilder: (ctx, i) => const SizedBox(width: 10),
+                  itemBuilder: (ctx, i) => _buildMiniProductCard(context, nearbyItems[i]),
+                ),
               ),
             ),
 
           const SizedBox(height: 24),
 
           // 3. Top Trusted Traders (مستخدمون موثوقون)
-          _buildSectionHeader('⭐ مقايضون موثوقون ذوو سمعة عالية', 'أعلى درجات Trust Score وتقييمات مكتملة'),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 125,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: auth.allUsers.length,
-              separatorBuilder: (ctx, i) => const SizedBox(width: 12),
-              itemBuilder: (ctx, i) {
-                final user = auth.allUsers[i];
-                return Container(
-                  width: 150,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppColors.primaryLight,
-                        child: Text(user.name.isNotEmpty ? user.name[0] : 'U', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(user.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.star, size: 12, color: AppColors.accent),
-                          Text(user.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 11)),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(4)),
-                            child: Text('${user.trustScore}% ثقة', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
+          if (auth.allUsers.isNotEmpty) ...[
+            _buildSectionHeader('⭐ مقايضون موثوقون ذوو سمعة عالية', 'أعلى درجات Trust Score وتقييمات مكتملة'),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 130,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: auth.allUsers.length,
+                separatorBuilder: (ctx, i) => const SizedBox(width: 12),
+                itemBuilder: (ctx, i) {
+                  final user = auth.allUsers[i];
+                  return Container(
+                    width: 145,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppColors.primaryLight,
+                          child: Text(
+                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          user.name,
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.star, size: 12, color: AppColors.accent),
+                            const SizedBox(width: 2),
+                            Text(user.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 10.5)),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryLight,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${user.trustScore}% ثقة',
+                                  style: const TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
 
           // 4. Commercial Verified Stores (المتاجر المعتمدة)
           if (market.stores.isNotEmpty) ...[
@@ -125,6 +159,7 @@ class ExploreScreen extends StatelessWidget {
             const SizedBox(height: 10),
             ...market.stores.map((s) => Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  elevation: 0.5,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     leading: const CircleAvatar(
@@ -133,7 +168,13 @@ class ExploreScreen extends StatelessWidget {
                     ),
                     title: Row(
                       children: [
-                        Text(s.storeName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Flexible(
+                          child: Text(
+                            s.storeName,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         const SizedBox(width: 4),
                         const Icon(Icons.verified, size: 14, color: AppColors.primary),
                       ],
@@ -147,12 +188,11 @@ class ExploreScreen extends StatelessWidget {
                     },
                   ),
                 )),
+            const SizedBox(height: 24),
           ],
 
-          const SizedBox(height: 24),
-
           // 5. Most Wanted Categories & Recently Added
-          _buildSectionHeader('📱 الأكثر طلباً للمقايضة', 'سلع يبحث عنها الكثير من المستخدمين الآن'),
+          _buildSectionHeader('📱 الأكثر طلباً للمقايضة', 'اضغط على السلعة للبحث المباشر عن عروضها'),
           const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -160,12 +200,12 @@ class ExploreScreen extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _chip('آيفون 15 برو ماكس'),
-                _chip('بلايستيشن 5'),
-                _chip('ماك بوك M2'),
-                _chip('سامسونج S24 Ultra'),
-                _chip('ساعة أبل ألترا'),
-                _chip('دراجات جبلية'),
+                _chip(context, 'آيفون 15 برو ماكس'),
+                _chip(context, 'بلايستيشن 5'),
+                _chip(context, 'ماك بوك M2'),
+                _chip(context, 'سامسونج S24 Ultra'),
+                _chip(context, 'ساعة أبل ألترا'),
+                _chip(context, 'دراجات جبلية'),
               ],
             ),
           ),
@@ -209,6 +249,7 @@ class ExploreScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
@@ -216,7 +257,7 @@ class ExploreScreen extends StatelessWidget {
                 images: item.images,
                 categoryId: item.categoryId,
                 width: double.infinity,
-                height: 100,
+                height: 95,
                 borderRadius: 0,
               ),
             ),
@@ -225,9 +266,24 @@ class ExploreScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text('${item.estimatedValue.toStringAsFixed(0)} ريال', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark, fontSize: 12)),
-                  Text('يريد: ${item.wantedDescription}', style: const TextStyle(fontSize: 10, color: AppColors.textMuted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    item.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${item.estimatedValue.toStringAsFixed(0)} ${AppStrings.currency}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark, fontSize: 11.5),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'يريد: ${item.wantedDescription}',
+                    style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -250,6 +306,7 @@ class ExploreScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
@@ -266,8 +323,17 @@ class ExploreScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text('${item.estimatedValue.toStringAsFixed(0)} ريال', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark, fontSize: 11)),
+                  Text(
+                    item.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${item.estimatedValue.toStringAsFixed(0)} ${AppStrings.currency}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark, fontSize: 11),
+                  ),
                 ],
               ),
             ),
@@ -277,15 +343,39 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _chip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.background,
+  Widget _chip(BuildContext context, String label) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final market = context.read<MarketplaceProvider>();
+          market.search(label);
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const SearchFilterScreen()),
+          );
+        },
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+          ),
+        ),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
     );
   }
+}
+
+class SliverFillRemainingWrapper extends StatelessWidget {
+  final Widget child;
+  const SliverFillRemainingWrapper({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => child;
 }
