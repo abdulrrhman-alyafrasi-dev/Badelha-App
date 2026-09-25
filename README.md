@@ -1,17 +1,12 @@
-# badelha_app
+# 🔄 Badelha App (منصة بدلها للمقايضة الذكية)
 
-A new Flutter project.
+تطبيق المقايضة والتبادل الدائري المباشر للسلع، مبني باستخدام Flutter و Laravel 13 و PostgreSQL 18 وفق معمارية النطاق النظيف (Clean Architecture).
 
-## Getting Started
+## 👥 فريق العمل
+- **عبدالرحمن اليفرسي (`abdulrrhman-alyafrasi-dev`)**: البنية التحتية، المصادقة، والربط مع PostgreSQL.
+- **سلطان العمراني (`Sultan-Al-Amrani`)**: محرك المطابقة الذكية وإدارة المقايضات الدائرية.
 
-This project is a starting point for a Flutter application.
+## 📌 القضايا ودورة العمل (Issues & Workflow)
+- **Issue #1**: `[Infrastructure & Auth] Clean Architecture Setup & Hybrid Storage` (عبدالرحمن اليفرسي)
+- **Issue #2**: `[Matching Engine] Smart Matching & Circular Swap Engine` (سلطان العمراني)
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
