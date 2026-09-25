@@ -1,6 +1,6 @@
-# 📂 بيان الملفات المخصصة للمهندس سلطان العمراني (Sultan Alamrani)
+# 📂 بيان الملفات المخصصة للمهندس سلطان العمراني (Sultan Alamrani) - حصة 50% متوازنة
 
-هذه هي القائمة التفصيلية للملفات التي تقع ضمن النطاق البرمجي المسند لسلطان العمراني لحل **Issue #2**:
+هذه هي القائمة المحدثة والشاملة لجميع الملفات البرمجية المسندة للمهندس سلطان العمراني وتساوي **50% كاملة من حجم المشروع**:
 
 ---
 
@@ -11,14 +11,22 @@ lib/
 ├── presentation/
 │   ├── screens/
 │   │   ├── matching/
-│   │   │   └── smart_matches_screen.dart     <-- شاشة عرض المنتجات المتوافقة مع رغبة المستخدم
-│   │   └── circular_swap/
-│   │       └── circular_swap_screen.dart    <-- شاشة المقايضة الدائرية والتبادل الثلاثي
+│   │   │   └── smart_matches_screen.dart             <-- شاشة المطابقات الذكية %
+│   │   ├── circular_swap/
+│   │   │   └── circular_swap_screen.dart            <-- شاشة التبادل الدائري الثلاثي
+│   │   ├── offers/
+│   │   │   └── offers_screen.dart                   <-- شاشة إشعارات ومتابعة العروض
+│   │   └── item_details/
+│   │       └── widgets/
+│   │           └── make_offer_modal.dart            <-- نافذة تقديم عرض مقايضة
+│   ├── widgets/
+│   │   └── swap_safety_dialog.dart                  <-- نافذة الأمان والضمان
 │   └── providers/
-│       └── matching_provider.dart           <-- مزود حالة المطابقات والمقايضات
+│       └── matching_provider.dart                   <-- إدارة حالة المطابقة والعروض
 └── data/
     └── models/
-        └── swap_request_model.dart          <-- نموذج طلبات المقايضة واحتساب التوافق
+        ├── swap_request_model.dart                  <-- نموذج العروض والمقايضات
+        └── trust_score_model.dart                   <-- نموذج تقييم الثقة والأمان
 ```
 
 ---
@@ -29,18 +37,20 @@ lib/
 backend/
 └── app/
     ├── Services/
-    │   ├── MatchingService.php              <-- خوارزمية حساب نسبة المطابقة (Matching Algorithm)
-    │   └── CircularSwapService.php          <-- خوارزمية البحث عن حلقة التبادل الدائري (A->B->C->A)
+    │   ├── MatchingService.php                      <-- خوارزمية التوافق والنسبة المئوية
+    │   ├── CircularSwapService.php                  <-- خوارزمية التبادل الثلاثي (A->B->C->A)
+    │   └── TrustService.php                         <-- حساب وتقييم درجات الثقة ⭐
     └── Http/
         └── Controllers/
             └── Api/
-                ├── MatchingController.php   <-- API Endpoints للمطابقة الذكية
-                └── CircularSwapController.php <-- API Endpoints للمقايضة الدائرية
+                ├── MatchingController.php           <-- API المطابقة الذكية
+                ├── CircularSwapController.php       <-- API المقايضة الدائرية
+                ├── SwapController.php               <-- API إرسال وحالة العروض
+                └── TrustController.php              <-- API تقييمات الأمان والثقة
 ```
 
 ---
 
-## 🔗 روابط GitHub المباشرة لسلطان:
-- 📌 **رابط القضية Issue #2:** [Issue #2 على GitHub](https://github.com/abdulrrhman-alyafrasi-dev/Badelha-App/issues/2)
-- 🔀 **رابط الفرع المخصص:** `feature/matching-engine-and-swap`
-- 📩 **رابط قبول دعوة المساهمة:** [Accept Invitation](https://github.com/abdulrrhman-alyafrasi-dev/Badelha-App/invitations)
+## ⚖️ تكافؤ العمل:
+- **عبدالرحمن (50%):** البنية التحتية، المصادقة، التخزين الهجين، إضافة وتصفح المنتجات بالسوق، لوحة الإدارة.
+- **سلطان (50%):** محرك المطابقة الذكية، محرك التبادل الدائري، إدارة تقديم وتتبع العروض، نظام الأمان وتقييمات الثقة ⭐.
