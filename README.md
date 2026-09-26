@@ -16,6 +16,7 @@
 ## 📄 وثائق المشروع الرئيسية
 - 📜 [وثيقة المتطلبات SRS-Mini](docs/SRS.md)
 - 🤖 [سجل استخدام الذكاء الاصطناعي AI_Log](AI_Log.md)
+- 📚 [الدليل الهندسي الموحد والمصطلحات الشاملة (Git, Laravel, DB)](docs/BADELHA_SYSTEM_CONCEPTS_AND_GLOSSARY.md)
 - 📘 [دليل المستخدم باللغة العربية](USER_GUIDE_AR.md)
 - 🏛️ [التوثيق المعماري الشامل للمشروع](BADELHA_PROJECT_COMPREHENSIVE_DOCUMENTATION.md)
 
