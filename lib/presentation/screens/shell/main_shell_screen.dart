@@ -24,11 +24,11 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
+  late final PageController _pageController;
 
-  final List<Widget> _screens = const [
+  final List<Widget> _swipeableScreens = const [
     MarketplaceScreen(),
     SmartMatchesScreen(),
-    SizedBox.shrink(), // Placeholder لن يتم الانتقال إليه في الـ Stack
     ExploreScreen(),
     ProfileScreen(),
   ];
@@ -36,6 +36,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: 0);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final auth = context.read<AuthProvider>();
@@ -49,6 +50,42 @@ class _MainShellScreenState extends State<MainShellScreen> {
         context.read<NotificationProvider>().loadNotifications(userId);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  int _bottomNavIndexToPageIndex(int navIndex) {
+    switch (navIndex) {
+      case 0:
+        return 0;
+      case 1:
+        return 1;
+      case 3:
+        return 2;
+      case 4:
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  int _pageIndexToBottomNavIndex(int pageIndex) {
+    switch (pageIndex) {
+      case 0:
+        return 0;
+      case 1:
+        return 1;
+      case 2:
+        return 3;
+      case 3:
+        return 4;
+      default:
+        return 0;
+    }
   }
 
   void _onBottomNavTapped(int index) {
@@ -69,6 +106,23 @@ class _MainShellScreenState extends State<MainShellScreen> {
     setState(() {
       _currentIndex = index;
     });
+    final pageIndex = _bottomNavIndexToPageIndex(index);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        pageIndex,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _onPageChanged(int pageIndex) {
+    final navIndex = _pageIndexToBottomNavIndex(pageIndex);
+    if (_currentIndex != navIndex) {
+      setState(() {
+        _currentIndex = navIndex;
+      });
+    }
   }
 
   @override
@@ -191,9 +245,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
           ],
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        physics: const BouncingScrollPhysics(),
+        children: _swipeableScreens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
