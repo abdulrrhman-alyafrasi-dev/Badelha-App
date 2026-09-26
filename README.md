@@ -1,12 +1,21 @@
-# 🔄 Badelha App (منصة بدلها للمقايضة الذكية)
+# 🔄 منصة بدلها (Badelha App)
 
-تطبيق المقايضة والتبادل الدائري المباشر للسلع، مبني باستخدام Flutter و Laravel 13 و PostgreSQL 18 وفق معمارية النطاق النظيف (Clean Architecture).
+## وصف مختصر
+منصة بدلها للمقايضة الذكية والتبادل المباشر والدائري للسلع، مبنية باستخدام Flutter و Laravel 13 و PostgreSQL 18 وفق معمارية النطاق النظيف (Clean Architecture).
 
-## 👥 فريق العمل
-- **عبدالرحمن اليفرسي (`abdulrrhman-alyafrasi-dev`)**: البنية التحتية، المصادقة، والربط مع PostgreSQL.
-- **سلطان العمراني (`Sultan-Al-Amrani`)**: محرك المطابقة الذكية وإدارة المقايضات الدائرية.
+## 👥 أعضاء الفريق
+- **عبدالرحمن اليفرسي** (`abdulrrhman-alyafrasi-dev`) - مسؤول البنية التحتية والمصادقة وقواعد البيانات
+- **سلطان العمراني** (`Sultan-Al-Amrani`) - مسؤول محرك المطابقة والمقايضة الدائرية
 
-## 📌 القضايا ودورة العمل (Issues & Workflow)
-- **Issue #1**: `[Infrastructure & Auth] Clean Architecture Setup & Hybrid Storage` (عبدالرحمن اليفرسي)
-- **Issue #2**: `[Matching Engine] Smart Matching & Circular Swap Engine` (سلطان العمراني)
+## 🛠️ التقنيات المستخدمة
+- Flutter (Dart)
+- Laravel 13 (PHP)
+- PostgreSQL 18 & SQLite
+- Git & GitHub
 
+## 📄 وثائق المشروع
+- 📜 [وثيقة المتطلبات SRS-Mini](docs/SRS.md)
+- 🤖 [سجل استخدام الذكاء الاصطناعي AI_Log](AI_Log.md)
+
+## 🔄 طريقة العمل
+يستخدم الفريق **GitHub Issues**, **Branches**, **Pull Requests**, و **Kanban Project Board** لإدارة المشروع ودورة العمل الجماعية المعتمدة.
